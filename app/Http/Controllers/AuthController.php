@@ -10,16 +10,18 @@ use Carbon\Carbon;
 
 class AuthController extends Controller
 {
-    // Tampilkan halaman login/register
+    /**
+     * Show Login / Register Page
+     */
     public function showPage(Request $request)
     {
-        $show = $request->query('show', 'login'); // default login
+        $show = $request->query('show', 'login'); 
         return view('auth.login', compact('show'));
     }
 
-    // -----------------------------
+    // ============================================================
     // REGISTER
-    // -----------------------------
+    // ============================================================
     public function register(Request $request)
     {
         $request->validate([
@@ -29,13 +31,13 @@ class AuthController extends Controller
             'password' => 'required|min:6'
         ]);
 
-        User::create([
+        $user = User::create([
             'name'         => $request->fullName,
             'username'     => $request->username,
             'email'        => $request->email,
             'password'     => Hash::make($request->password),
 
-            // Field tambahan sesuai tabel kamu
+            // Field default
             'role'         => 'user',
             'bio'          => null,
             'badge'        => null,
@@ -44,12 +46,12 @@ class AuthController extends Controller
             'last_login'   => null,
         ]);
 
-        return redirect('/auth?show=login')->with('success', 'Akun berhasil dibuat! Silakan login.');
+        return redirect('/auth')->with('success', 'Akun berhasil dibuat! Silakan login.');
     }
 
-    // -----------------------------
+    // ============================================================
     // LOGIN
-    // -----------------------------
+    // ============================================================
     public function login(Request $request)
     {
         $request->validate([
@@ -57,20 +59,53 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return back()->with('error', 'Email atau password salah.');
+        // Coba login
+        if (Auth::attempt(['email' => $request->email, 'password' => $request->password]) ||
+            Auth::attempt(['username' => $request->email, 'password' => $request->password])) {
+            
+            $user = Auth::user();
+            $user->update(['last_login' => now()]);
+            
+            return redirect('/profile');
         }
-
-        $user = Auth::user();
-        $user->update(['last_login' => Carbon::now()]);
-
-        return redirect('/dashboard');
     }
 
+    // ============================================================
+    // LOGIN AS GUEST (TAMBAHAN)
+    // ============================================================
+    public function loginGuest()
+    {
+        // Cari apakah sudah ada user guest
+        $guest = User::where('email', 'guest@example.com')->first();
+
+        // Jika belum ada → buat baru
+        if (!$guest) {
+            $guest = User::create([
+                'name'        => 'Guest User',
+                'username'    => 'guest_user',
+                'email'       => 'guest@example.com',
+                'password'    => Hash::make('guest123'), // tidak digunakan
+                'role'        => 'guest',
+                'status_akun' => 'aktif',
+                'total_point' => 0,
+            ]);
+        }
+
+        Auth::login($guest);
+
+        // Update last login
+        $guest->update(['last_login' => Carbon::now()]);
+
+        return redirect('/profile')->with('success', 'Anda login sebagai Guest!');
+    }
+
+    // ============================================================
     // LOGOUT
+    // ============================================================
     public function logout()
     {
         Auth::logout();
-        return redirect('/auth?show=login');
+
+        return redirect('/auth')->with('success', 'Berhasil logout.');
     }
 }

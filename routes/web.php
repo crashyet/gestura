@@ -10,10 +10,25 @@ Route::get('/', function () {
 
 Route::get('/auth', [AuthController::class, 'showPage'])->name('auth.page');
 
-Route::post('/register', [AuthController::class, 'register'])->name('register');
+// Route::post('/register', [AuthController::class, 'register'])->name('register');
 
-Route::post('/login', [AuthController::class, 'login'])->name('login');
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+// Route::post('/login', [AuthController::class, 'login'])->name('login');
+// Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+
+// REGISTER
+Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
+
+// LOGIN
+Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
+
+// LOGIN GUEST
+Route::get('/login/guest', [AuthController::class, 'loginGuest'])->name('auth.guest');
+
+// LOGOUT
+Route::get('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+
 
 
 Route::get('/profile', function () {
