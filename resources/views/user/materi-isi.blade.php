@@ -1,6 +1,6 @@
 @extends('app')
 @section('content')
-
+        <x-sidebar-user></x-sidebar-user>
 <main class="container mx-auto px-4 py-8">
     <div class="space-y-6">
         <div class="flex items-center gap-4"><button
